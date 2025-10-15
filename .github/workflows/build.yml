@@ -1,0 +1,157 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - build
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Cache Steamworks SDK
+      id: cache-steamworks-sdk
+      uses: actions/cache@v3
+      with:
+        path: steamworks_sdk
+        key: ${{ runner.os }}-steamworks-sdk-${{ hashFiles('steamworks_sdk_url.txt') }}
+
+    - name: Download and Extract Steamworks SDK (Linux/macOS)
+      if: steps.cache-steamworks-sdk.outputs.cache-hit != 'true' && (runner.os == 'Linux' || runner.os == 'macOS')
+      run: |
+        SDK_URL=$(cat steamworks_sdk_url.txt)
+        curl -L -o steamworks_sdk.zip "$SDK_URL"
+        unzip steamworks_sdk.zip -d steamworks_sdk
+
+    - name: Download and Extract Steamworks SDK (Windows)
+      if: steps.cache-steamworks-sdk.outputs.cache-hit != 'true' && runner.os == 'Windows'
+      run: |
+        $SDK_URL = Get-Content steamworks_sdk_url.txt
+        curl -L -o steamworks_sdk.zip "$SDK_URL"
+        Expand-Archive -Path steamworks_sdk.zip -DestinationPath steamworks_sdk
+
+
+    - name: Set SDK paths (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        echo "sdk_path_lib=steamworks_sdk/sdk/redistributable_bin/linux64" >> $GITHUB_ENV
+        echo "sdk_path_include=steamworks_sdk/sdk/public" >> $GITHUB_ENV
+
+    - name: Set SDK paths (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        echo "sdk_path_lib=steamworks_sdk/sdk/redistributable_bin/osx" >> $GITHUB_ENV
+        echo "sdk_path_include=steamworks_sdk/sdk/public" >> $GITHUB_ENV
+
+    - name: Set SDK paths (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        echo "sdk_path_lib=steamworks_sdk/sdk/redistributable_bin/win64" >> $env:GITHUB_ENV
+        echo "sdk_path_include=steamworks_sdk/sdk/public" >> $env:GITHUB_ENV
+
+
+    - name: Build on Linux
+      if: runner.os == 'Linux'
+      run: |
+        make STEAM_INCLUDE_DIR=${{ env.sdk_path_include }} STEAM_LIB_DIR=${{ env.sdk_path_lib }}
+        
+    - name: Build on macOS
+      if: runner.os == 'macOS'
+      run: |
+        make STEAM_INCLUDE_DIR=${{ env.sdk_path_include }} STEAM_LIB_DIR=${{ env.sdk_path_lib }}
+
+    - name: Set up MSVC
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Build on Windows
+      if: runner.os == 'Windows'
+      run: |
+        make STEAM_INCLUDE_DIR=${{ env.sdk_path_include }} STEAM_LIB_DIR=${{ env.sdk_path_lib }}
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: steamworkspy-${{ matrix.os }}
+        path: |
+          SteamworksPy.so
+          SteamworksPy.dylib
+          SteamworksPy.dll
+        if-no-files-found: ignore
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Delete existing 'latest' release and tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest -y || true
+          git push origin --delete latest || true
+        continue-on-error: true
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          release_name: Latest Build
+          draft: false
+          prerelease: true
+
+      - name: Upload Release Asset - Linux
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/steamworkspy-ubuntu-latest/SteamworksPy.so
+          asset_name: SteamworksPy.so
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset - macOS
+        id: upload-release-asset-mac
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/steamworkspy-macos-latest/SteamworksPy.dylib
+          asset_name: SteamworksPy.dylib
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset - Windows
+        id: upload-release-asset-win
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/steamworkspy-windows-latest/SteamworksPy.dll
+          asset_name: SteamworksPy.dll
+          asset_content_type: application/octet-stream
