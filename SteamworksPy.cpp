@@ -970,3 +970,244 @@ SW_PY void Leaderboard_FindLeaderboard(const char *pchLeaderboardName){
 	}
 	leaderboard.FindLeaderboard(pchLeaderboardName);
 }
+
+//-----------------------------------------------
+// Steam Input
+//-----------------------------------------------
+SW_PY bool SteamInput_Init(){
+	if(SteamInput() == NULL){
+		return false;
+	}
+	return SteamInput()->Init(true);
+}
+
+SW_PY void SteamInput_Shutdown(){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->Shutdown();
+}
+
+SW_PY void SteamInput_RunFrame(){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->RunFrame();
+}
+
+SW_PY int SteamInput_GetConnectedControllers(uint64 *handlesOut){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetConnectedControllers((InputHandle_t*)handlesOut);
+}
+
+SW_PY uint64 SteamInput_GetActionSetHandle(const char *pszActionSetName){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetActionSetHandle(pszActionSetName);
+}
+
+SW_PY void SteamInput_ActivateActionSet(uint64 inputHandle, uint64 actionSetHandle){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->ActivateActionSet((InputHandle_t)inputHandle, (InputActionSetHandle_t)actionSetHandle);
+}
+
+SW_PY uint64 SteamInput_GetDigitalActionHandle(const char *pszActionName){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetDigitalActionHandle(pszActionName);
+}
+
+SW_PY void SteamInput_GetDigitalActionData(uint64 inputHandle, uint64 digitalActionHandle, void *pData){
+	if(SteamInput() == NULL){
+		return;
+	}
+	*(InputDigitalActionData_t*)pData = SteamInput()->GetDigitalActionData((InputHandle_t)inputHandle, (InputDigitalActionHandle_t)digitalActionHandle);
+}
+
+SW_PY uint64 SteamInput_GetAnalogActionHandle(const char *pszActionName){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetAnalogActionHandle(pszActionName);
+}
+
+SW_PY void SteamInput_GetAnalogActionData(uint64 inputHandle, uint64 analogActionHandle, void *pData){
+	if(SteamInput() == NULL){
+		return;
+	}
+	*(InputAnalogActionData_t*)pData = SteamInput()->GetAnalogActionData((InputHandle_t)inputHandle, (InputAnalogActionHandle_t)analogActionHandle);
+}
+
+SW_PY int SteamInput_GetAnalogActionOrigins(uint64 inputHandle, uint64 actionSetHandle, uint64 analogActionHandle, int *originsOut){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetAnalogActionOrigins((InputHandle_t)inputHandle, (InputActionSetHandle_t)actionSetHandle, (InputAnalogActionHandle_t)analogActionHandle, (EInputActionOrigin*)originsOut);
+}
+
+SW_PY uint64 SteamInput_GetControllerForGamepadIndex(int nIndex){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetControllerForGamepadIndex(nIndex);
+}
+
+SW_PY uint64 SteamInput_GetCurrentActionSet(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetCurrentActionSet((InputHandle_t)inputHandle);
+}
+
+SW_PY int SteamInput_GetDigitalActionOrigins(uint64 inputHandle, uint64 actionSetHandle, uint64 digitalActionHandle, int *originsOut){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetDigitalActionOrigins((InputHandle_t)inputHandle, (InputActionSetHandle_t)actionSetHandle, (InputDigitalActionHandle_t)digitalActionHandle, (EInputActionOrigin*)originsOut);
+}
+
+SW_PY int SteamInput_GetGamepadIndexForController(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return -1;
+	}
+	return SteamInput()->GetGamepadIndexForController((InputHandle_t)inputHandle);
+}
+
+SW_PY const char * SteamInput_GetGlyphPNGForActionOrigin(int eOrigin, int eSize, uint32 unFlags){
+	if(SteamInput() == NULL){
+		return "";
+	}
+	return SteamInput()->GetGlyphPNGForActionOrigin((EInputActionOrigin)eOrigin, (ESteamInputGlyphSize)eSize, unFlags);
+}
+
+SW_PY int SteamInput_GetInputTypeForHandle(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return 0; // k_ESteamInputType_Unknown
+	}
+	return SteamInput()->GetInputTypeForHandle((InputHandle_t)inputHandle);
+}
+
+SW_PY void SteamInput_GetMotionData(uint64 inputHandle, void *pData){
+	if(SteamInput() == NULL){
+		return;
+	}
+	*(InputMotionData_t*)pData = SteamInput()->GetMotionData((InputHandle_t)inputHandle);
+}
+
+SW_PY const char * SteamInput_GetStringForActionOrigin(int eOrigin){
+	if(SteamInput() == NULL){
+		return "";
+	}
+	return SteamInput()->GetStringForActionOrigin((EInputActionOrigin)eOrigin);
+}
+
+SW_PY void SteamInput_SetLEDColor(uint64 inputHandle, uint8 nColorR, uint8 nColorG, uint8 nColorB, unsigned int nFlags){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->SetLEDColor((InputHandle_t)inputHandle, nColorR, nColorG, nColorB, nFlags);
+}
+
+SW_PY bool SteamInput_ShowBindingPanel(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return false;
+	}
+	return SteamInput()->ShowBindingPanel((InputHandle_t)inputHandle);
+}
+
+SW_PY void SteamInput_StopAnalogActionMomentum(uint64 inputHandle, uint64 analogActionHandle){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->StopAnalogActionMomentum((InputHandle_t)inputHandle, (InputAnalogActionHandle_t)analogActionHandle);
+}
+
+SW_PY void SteamInput_TriggerVibration(uint64 inputHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->TriggerVibration((InputHandle_t)inputHandle, usLeftSpeed, usRightSpeed);
+}
+
+SW_PY void SteamInput_TriggerVibrationExtended(uint64 inputHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed, unsigned short usLeftTriggerSpeed, unsigned short usRightTriggerSpeed){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->TriggerVibrationExtended((InputHandle_t)inputHandle, usLeftSpeed, usRightSpeed, usLeftTriggerSpeed, usRightTriggerSpeed);
+}
+
+SW_PY int SteamInput_GetActionOriginFromXboxOrigin(uint64 inputHandle, int eXboxOrigin){
+	if(SteamInput() == NULL){
+		return 0; // k_EInputActionOrigin_None
+	}
+	return SteamInput()->GetActionOriginFromXboxOrigin((InputHandle_t)inputHandle, (EXboxOrigin)eXboxOrigin);
+}
+
+SW_PY int SteamInput_TranslateActionOrigin(int eDestinationInputType, int eSourceOrigin){
+	if(SteamInput() == NULL){
+		return 0; // k_EInputActionOrigin_None
+	}
+	return SteamInput()->TranslateActionOrigin((ESteamInputType)eDestinationInputType, (EInputActionOrigin)eSourceOrigin);
+}
+
+SW_PY bool SteamInput_GetDeviceBindingRevision(uint64 inputHandle, int *pMajor, int *pMinor){
+	if(SteamInput() == NULL){
+		return false;
+	}
+	return SteamInput()->GetDeviceBindingRevision((InputHandle_t)inputHandle, pMajor, pMinor);
+}
+
+SW_PY uint32 SteamInput_GetRemotePlaySessionID(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetRemotePlaySessionID((InputHandle_t)inputHandle);
+}
+
+SW_PY void SteamInput_Legacy_TriggerHapticPulse(uint64 inputHandle, int eTargetPad, unsigned short usDurationMicroSec){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->Legacy_TriggerHapticPulse((InputHandle_t)inputHandle, (ESteamControllerPad)eTargetPad, usDurationMicroSec);
+}
+
+SW_PY void SteamInput_Legacy_TriggerRepeatedHapticPulse(uint64 inputHandle, int eTargetPad, unsigned short usDurationMicroSec, unsigned short usOffMicroSec, unsigned short unRepeat, unsigned int nFlags){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->Legacy_TriggerRepeatedHapticPulse((InputHandle_t)inputHandle, (ESteamControllerPad)eTargetPad, usDurationMicroSec, usOffMicroSec, unRepeat, nFlags);
+}
+
+SW_PY void SteamInput_ActivateActionSetLayer(uint64 inputHandle, uint64 actionSetHandle){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->ActivateActionSetLayer((InputHandle_t)inputHandle, (InputActionSetHandle_t)actionSetHandle);
+}
+
+SW_PY void SteamInput_DeactivateActionSetLayer(uint64 inputHandle, uint64 actionSetHandle){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->DeactivateActionSetLayer((InputHandle_t)inputHandle, (InputActionSetHandle_t)actionSetHandle);
+}
+
+SW_PY void SteamInput_DeactivateAllActionSetLayers(uint64 inputHandle){
+	if(SteamInput() == NULL){
+		return;
+	}
+	SteamInput()->DeactivateAllActionSetLayers((InputHandle_t)inputHandle);
+}
+
+SW_PY int SteamInput_GetActiveActionSetLayers(uint64 inputHandle, uint64 *handlesOut){
+	if(SteamInput() == NULL){
+		return 0;
+	}
+	return SteamInput()->GetActiveActionSetLayers((InputHandle_t)inputHandle, (InputActionSetHandle_t*)handlesOut);
+}
